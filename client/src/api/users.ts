@@ -1,4 +1,9 @@
-import { queryOptions, useSuspenseQueries } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQueryClient,
+  useSuspenseQueries,
+} from "@tanstack/react-query";
 import axios from "redaxios";
 
 import type { User, UsersResponse } from "../../../shared/types";
@@ -79,6 +84,20 @@ export const useUserList = ({
   });
 
   return usersList;
+};
+
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: (userId: string) => axios.delete(getRoute(`/users/${userId}`)),
+    onSuccess: async () => {
+      // If you're invalidating a single query
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+
+  return deleteMutation;
 };
 
 export type UserList = ReturnType<typeof useUserList>;

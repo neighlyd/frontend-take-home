@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import axios from "redaxios";
 import {
   AlertDialog,
   Avatar,
@@ -14,11 +14,26 @@ import { Link } from "@tanstack/react-router";
 
 import "./usersTable.css";
 
-import type { UserList } from "../api/users";
+import { useDeleteUser, type UserList } from "../api/users";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getRoute } from "../api/_utils";
+import { useState } from "react";
 
-const DeleteUser = ({ userName }: { userName: string }) => {
+const DeleteUser = ({ userName, id }: { userName: string; id: string }) => {
+  const [open, setIsOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: (userId: string) => axios.delete(getRoute(`/users/${userId}`)),
+    onSuccess: async () => {
+      // If you're invalidating a single query
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+      setIsOpen(false);
+    },
+  });
+
   return (
-    <AlertDialog.Root>
+    <AlertDialog.Root open={open} onOpenChange={setIsOpen}>
       <AlertDialog.Trigger>
         {/* We need to stop the Dropdown menu from closing when selecting this option*/}
         <DropdownMenu.Item onSelect={(e) => e.preventDefault()}>
@@ -26,10 +41,16 @@ const DeleteUser = ({ userName }: { userName: string }) => {
         </DropdownMenu.Item>
       </AlertDialog.Trigger>
 
-      <AlertDialog.Content maxWidth="450px">
+      {/* We do not want the dialog to close during our deletion */}
+      <AlertDialog.Content
+        maxWidth="488px"
+        onEscapeKeyDown={(e) => deleteMutation.isPending && e.preventDefault()}
+      >
         <AlertDialog.Title>Delete user</AlertDialog.Title>
         <AlertDialog.Description size="2">
-          Are you sure? The user {userName} will be permanently deleted.
+          {!deleteMutation.isError
+            ? `Are you sure? The user ${userName} will be permanently deleted.`
+            : `There was an error trying to delete ${userName}. Please try again`}
         </AlertDialog.Description>
 
         <Flex gap="3" mt="4" justify="end">
@@ -39,7 +60,16 @@ const DeleteUser = ({ userName }: { userName: string }) => {
             </Button>
           </AlertDialog.Cancel>
           <AlertDialog.Action>
-            <Button variant="solid" color="red">
+            <Button
+              variant="solid"
+              color="red"
+              loading={deleteMutation.isPending}
+              onClick={(e) => {
+                // Stop the dialog from closing.
+                e.preventDefault();
+                deleteMutation.mutate(id);
+              }}
+            >
               Delete user
             </Button>
           </AlertDialog.Action>
@@ -86,7 +116,7 @@ const UsersTableRow = ({
 
           <DropdownMenu.Content align="end">
             <DropdownMenu.Item>Edit user</DropdownMenu.Item>
-            <DeleteUser userName={name} />
+            <DeleteUser userName={name} id={id} />
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       </Table.Cell>

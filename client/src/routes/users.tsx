@@ -58,6 +58,18 @@ function RouteComponent() {
     150, // setting this at a 150ms debounce. We can adjust later
   );
 
+  useEffect(() => {
+    // If we delete the last user on a page, we will want to go back a page.
+    if (page > usersList.pages) {
+      navigate({
+        search: (previous) => ({
+          ...previous,
+          page: previous.page - 1,
+        }),
+      });
+    }
+  }, [page, usersList.pages]);
+
   return (
     <>
       <SearchBar type="user" onChange={handleInputChange} />
