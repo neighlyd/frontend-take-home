@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQueries } from "@tanstack/react-query";
 import axios from "redaxios";
 
 import type { User, UsersResponse } from "../../../shared/types";
@@ -6,6 +6,8 @@ import { dateFormat, getRoute } from "./_utils";
 import { formatRoleMap, rolesQueryOptions } from "./roles";
 
 export class UserNotFoundError extends Error {}
+
+export class UsersListError extends Error {}
 
 export const fetchUser = async (userId: string) => {
   const user = await axios
@@ -21,15 +23,23 @@ export const fetchUser = async (userId: string) => {
   return user;
 };
 
-export const fetchUsers = async () => {
-  return axios.get<UsersResponse>(getRoute("/users")).then((r) => r.data);
+export const fetchUsers = async (page?: number, search?: string) => {
+  return axios
+    .get<UsersResponse>(getRoute(`/users`), {
+      params: {
+        page,
+        search,
+      },
+    })
+    .then((r) => r.data);
 };
 
-export const usersQueryOptions = queryOptions({
-  queryKey: ["users"],
-  queryFn: fetchUsers,
-  retry: 3,
-});
+export const usersQueryOptions = (page: number = 1, search?: string) =>
+  queryOptions({
+    queryKey: ["users", page, search],
+    queryFn: () => fetchUsers(page, search),
+    retry: 3,
+  });
 
 export const formatUsersList = (
   { data }: UsersResponse,
@@ -46,3 +56,29 @@ export const formatUsersList = (
     };
   });
 };
+
+export const useUserList = ({
+  page,
+  search,
+}: {
+  page?: number;
+  search?: string;
+}) => {
+  const usersList = useSuspenseQueries({
+    queries: [usersQueryOptions(page, search), rolesQueryOptions],
+    combine: ([usersRes, rolesRes]) => {
+      if (usersRes.status === "error" || rolesRes.status === "error") {
+        throw new UsersListError();
+      }
+      const roleMap = formatRoleMap(rolesRes.data);
+      const usersList = formatUsersList(usersRes.data, roleMap);
+      const { next, prev, pages } = usersRes.data;
+
+      return { usersList, next, prev, pages };
+    },
+  });
+
+  return usersList;
+};
+
+export type UserList = ReturnType<typeof useUserList>;

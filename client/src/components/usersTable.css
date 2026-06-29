@@ -1,0 +1,12 @@
+.rt-TableRoot:where(.rt-variant-surface)
+  :where(.rt-TableRootTable)
+  :where(.rt-TableBody.hasFooter)
+  :where(.rt-TableRow:last-child) {
+  /*
+* We are overriding default Radix-Theme behavior.
+* Radix theme does not have a built in Table.Footer component.
+*
+* @see https://github.com/radix-ui/themes/issues/524
+*/
+  --table-row-box-shadow: inset 0 -1px var(--gray-a5);
+}
