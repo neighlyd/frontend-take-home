@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
+import { Route as RolesRouteImport } from './routes/roles'
 import { Route as PathlessLayoutRouteImport } from './routes/_pathlessLayout'
 import { Route as PostsRouteRouteImport } from './routes/posts.route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -18,6 +20,16 @@ import { Route as PathlessLayoutNestedLayoutRouteImport } from './routes/_pathle
 import { Route as PathlessLayoutNestedLayoutRouteBRouteImport } from './routes/_pathlessLayout/_nested-layout/route-b'
 import { Route as PathlessLayoutNestedLayoutRouteARouteImport } from './routes/_pathlessLayout/_nested-layout/route-a'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RolesRoute = RolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PathlessLayoutRoute = PathlessLayoutRouteImport.update({
   id: '/_pathlessLayout',
   getParentRoute: () => rootRouteImport,
@@ -63,6 +75,8 @@ const PathlessLayoutNestedLayoutRouteARoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/posts': typeof PostsRouteRouteWithChildren
+  '/roles': typeof RolesRoute
+  '/users': typeof UsersRoute
   '/posts/$postId': typeof PostsPostIdRoute
   '/posts/': typeof PostsIndexRoute
   '/route-a': typeof PathlessLayoutNestedLayoutRouteARoute
@@ -70,6 +84,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/roles': typeof RolesRoute
+  '/users': typeof UsersRoute
   '/posts/$postId': typeof PostsPostIdRoute
   '/posts': typeof PostsIndexRoute
   '/route-a': typeof PathlessLayoutNestedLayoutRouteARoute
@@ -80,6 +96,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/posts': typeof PostsRouteRouteWithChildren
   '/_pathlessLayout': typeof PathlessLayoutRouteWithChildren
+  '/roles': typeof RolesRoute
+  '/users': typeof UsersRoute
   '/_pathlessLayout/_nested-layout': typeof PathlessLayoutNestedLayoutRouteWithChildren
   '/posts/$postId': typeof PostsPostIdRoute
   '/posts/': typeof PostsIndexRoute
@@ -91,17 +109,28 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/posts'
+    | '/roles'
+    | '/users'
     | '/posts/$postId'
     | '/posts/'
     | '/route-a'
     | '/route-b'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/posts/$postId' | '/posts' | '/route-a' | '/route-b'
+  to:
+    | '/'
+    | '/roles'
+    | '/users'
+    | '/posts/$postId'
+    | '/posts'
+    | '/route-a'
+    | '/route-b'
   id:
     | '__root__'
     | '/'
     | '/posts'
     | '/_pathlessLayout'
+    | '/roles'
+    | '/users'
     | '/_pathlessLayout/_nested-layout'
     | '/posts/$postId'
     | '/posts/'
@@ -113,10 +142,26 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PostsRouteRoute: typeof PostsRouteRouteWithChildren
   PathlessLayoutRoute: typeof PathlessLayoutRouteWithChildren
+  RolesRoute: typeof RolesRoute
+  UsersRoute: typeof UsersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roles': {
+      id: '/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof RolesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_pathlessLayout': {
       id: '/_pathlessLayout'
       path: ''
@@ -224,6 +269,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PostsRouteRoute: PostsRouteRouteWithChildren,
   PathlessLayoutRoute: PathlessLayoutRouteWithChildren,
+  RolesRoute: RolesRoute,
+  UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
