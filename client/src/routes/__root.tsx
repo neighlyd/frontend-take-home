@@ -6,6 +6,9 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Container, Flex, Section } from "@radix-ui/themes";
+
+import { Nav } from "../components/Nav";
 
 import type { QueryClient } from "@tanstack/react-query";
 
@@ -25,10 +28,15 @@ export const Route = createRootRouteWithContext<{
 
 function RootComponent() {
   return (
-    <>
-      <Outlet />
+    <Container maxWidth="850px" py="40px" px="8">
+      <Nav />
+      <Section pt="5" asChild>
+        <Flex direction="column" gap="5">
+          <Outlet />
+        </Flex>
+      </Section>
       <ReactQueryDevtools buttonPosition="top-right" />
       <TanStackRouterDevtools position="bottom-right" />
-    </>
+    </Container>
   );
 }
