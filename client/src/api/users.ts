@@ -1,8 +1,9 @@
 import {
+  keepPreviousData,
   queryOptions,
   useMutation,
+  useQuery,
   useQueryClient,
-  useSuspenseQueries,
 } from "@tanstack/react-query";
 import axios from "redaxios";
 
@@ -43,6 +44,7 @@ export const usersQueryOptions = (page: number = 1, search?: string) =>
   queryOptions({
     queryKey: ["users", page, search],
     queryFn: () => fetchUsers(page, search),
+    placeholderData: keepPreviousData,
     retry: 3,
   });
 
@@ -69,21 +71,32 @@ export const useUserList = ({
   page?: number;
   search?: string;
 }) => {
-  const usersList = useSuspenseQueries({
-    queries: [usersQueryOptions(page, search), rolesQueryOptions],
-    combine: ([usersRes, rolesRes]) => {
-      if (usersRes.status === "error" || rolesRes.status === "error") {
-        throw new UsersListError();
-      }
-      const roleMap = formatRoleMap(rolesRes.data);
-      const usersList = formatUsersList(usersRes.data, roleMap);
-      const { next, prev, pages } = usersRes.data;
+  const usersRes = useQuery(usersQueryOptions(page, search));
+  const rolesRes = useQuery(rolesQueryOptions);
 
-      return { usersList, next, prev, pages };
-    },
-  });
+  const isLoading = usersRes.isLoading || rolesRes.isLoading;
+  const isError = usersRes.isError || rolesRes.isError;
+  const isPlaceholderData = usersRes.isPlaceholderData;
 
-  return usersList;
+  let usersList: ReturnType<typeof formatUsersList> = [];
+  let next, prev, pages;
+  if (rolesRes.isSuccess && usersRes.isSuccess) {
+    const roleMap = rolesRes.data;
+    usersList = formatUsersList(usersRes.data, roleMap);
+    next = usersRes.data.next;
+    prev = usersRes.data.prev;
+    pages = usersRes.data.pages;
+  }
+
+  return {
+    isLoading,
+    isError,
+    usersList,
+    isPlaceholderData,
+    next,
+    prev,
+    pages,
+  };
 };
 
 export const useDeleteUser = () => {

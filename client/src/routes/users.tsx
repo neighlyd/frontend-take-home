@@ -7,42 +7,55 @@ import { UsersTable } from "../components/UsersTable";
 import { ErrorComponent } from "../components/ErrorComponent";
 import { useEffect } from "react";
 import { useDebounceCallback } from "usehooks-ts";
+import z from "zod";
 
 type UserListSearch = {
   page: number;
   search: string;
 };
 
+const usersSearchParams = z.object({
+  page: z.number().default(1),
+  search: z.string().default(""),
+});
+
 export const Route = createFileRoute("/users")({
   component: RouteComponent,
   preloadStaleTime: 0,
-  validateSearch: (search: Record<string, unknown>): UserListSearch => {
-    // validate and parse the search params into a typed state
-    return {
-      page: Number(search?.page ?? 1),
-      search: (search.search as string) || "",
-    };
-  },
+  validateSearch: usersSearchParams,
   loaderDeps: ({ search: { page, search } }) => ({
     page,
     search,
   }),
   loader: async ({ context: { queryClient }, deps: { page, search } }) => {
     // prefetch our data
-    await Promise.all([
+    Promise.all([
       queryClient.ensureQueryData(usersQueryOptions(page, search)),
       queryClient.ensureQueryData(rolesQueryOptions),
     ]);
   },
   pendingComponent: () => {
-    return <SearchBar disabled type="user" />;
+    return (
+      <>
+        <SearchBar disabled type="user" />
+        <UsersTable
+          isLoading
+          usersList={[]}
+          isError={false}
+          isPlaceholderData={false}
+          next={null}
+          prev={null}
+          pages={undefined}
+        />
+      </>
+    );
   },
   errorComponent: ErrorComponent,
 });
 
 function RouteComponent() {
   const { page, search } = Route.useSearch();
-  const usersList = useUserList({ page, search });
+  const usersRes = useUserList({ page, search });
   const navigate = Route.useNavigate();
 
   const handleInputChange = useDebounceCallback(
@@ -60,7 +73,7 @@ function RouteComponent() {
 
   useEffect(() => {
     // If we delete the last user on a page, we will want to go back a page.
-    if (page > usersList.pages) {
+    if (usersRes.pages && page > usersRes.pages) {
       navigate({
         search: (previous) => ({
           ...previous,
@@ -68,12 +81,16 @@ function RouteComponent() {
         }),
       });
     }
-  }, [page, usersList.pages]);
+  }, [page, usersRes.pages]);
 
   return (
     <>
-      <SearchBar type="user" onChange={handleInputChange} />
-      {usersList ? <UsersTable {...usersList} /> : null}
+      <SearchBar
+        type="user"
+        onChange={handleInputChange}
+        disabled={usersRes.isLoading}
+      />
+      {usersRes ? <UsersTable {...usersRes} /> : null}
     </>
   );
 }

@@ -19,8 +19,6 @@ export const SearchBar = ({
     [type],
   );
 
-  const buttonText = useMemo(() => `Add ${type}`, [type]);
-
   return (
     <Flex gap="2">
       <Box asChild flexGrow="1">
@@ -35,7 +33,7 @@ export const SearchBar = ({
         </TextField.Root>
       </Box>
       <Button disabled={disabled}>
-        <PlusIcon /> {buttonText}
+        <PlusIcon /> Add {type}
       </Button>
     </Flex>
   );

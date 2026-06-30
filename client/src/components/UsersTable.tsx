@@ -1,3 +1,4 @@
+import { useState } from "react";
 import axios from "redaxios";
 import {
   AlertDialog,
@@ -6,18 +7,20 @@ import {
   DropdownMenu,
   Flex,
   IconButton,
+  Skeleton,
+  Spinner,
   Table,
   Text,
 } from "@radix-ui/themes";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Link } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { getRoute } from "../api/_utils";
+
+import type { UserList } from "../api/users";
 
 import "./usersTable.css";
-
-import { useDeleteUser, type UserList } from "../api/users";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getRoute } from "../api/_utils";
-import { useState } from "react";
 
 const DeleteUser = ({ userName, id }: { userName: string; id: string }) => {
   const [open, setIsOpen] = useState(false);
@@ -124,14 +127,65 @@ const UsersTableRow = ({
   );
 };
 
-export const UsersTable = ({ usersList, prev, next, pages }: UserList) => {
+const SkeletonRow = () => {
+  return (
+    <Table.Row>
+      <Table.RowHeaderCell>
+        <Flex gap="2" align="center">
+          <Skeleton>
+            <Avatar radius="full" size="1" fallback="L" />
+          </Skeleton>
+          <Skeleton width="100%" />
+        </Flex>
+      </Table.RowHeaderCell>
+      <Table.Cell>
+        <Flex align="center">
+          <Skeleton width="100%" />
+        </Flex>
+      </Table.Cell>
+      <Table.Cell>
+        <Flex align="center">
+          <Skeleton width="100%" />
+        </Flex>
+      </Table.Cell>
+      <Table.Cell></Table.Cell>
+    </Table.Row>
+  );
+};
+
+/**
+ * We can adjust this as necessary.
+ * It looks good on page 1, not page 2.
+ *
+ * We would ideally want to set this to the average number of our pages maybe?
+ */
+const skeletonArr = Array.from({ length: 1 }, (_, i) => i);
+
+export const UsersTable = ({
+  usersList,
+  prev,
+  next,
+  pages,
+  isLoading,
+  isError,
+  isPlaceholderData,
+}: UserList) => {
+  console.log(
+    "isLoading:",
+    isLoading,
+    "isPlacholderData:",
+    isPlaceholderData,
+    "prev != null:",
+    prev != null,
+  );
   return (
     <Table.Root variant="surface" className="hasFooter">
       <Table.Header>
         <Table.Row>
-          <Table.ColumnHeaderCell>User</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Role</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Joined</Table.ColumnHeaderCell>
+          {/* Percentages based on Figma designs */}
+          <Table.ColumnHeaderCell width="35%">User</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell width="32%">Role</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell width="27%">Joined</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell
             justify="end"
             aria-label="actions"
@@ -140,19 +194,23 @@ export const UsersTable = ({ usersList, prev, next, pages }: UserList) => {
       </Table.Header>
 
       <Table.Body className="hasFooter">
-        {usersList?.map((user) => (
-          <UsersTableRow key={user.id} {...user} />
-        ))}
+        {!isLoading && !isError
+          ? usersList?.map((user) => <UsersTableRow key={user.id} {...user} />)
+          : null}
+        {isLoading && !isError
+          ? skeletonArr.map((i) => <SkeletonRow key={i} />)
+          : null}
       </Table.Body>
       <tfoot>
         <Table.Row>
           <Table.RowHeaderCell colSpan={4}>
             <Flex justify="end" gap="2">
               <Button
+                asChild
                 color="gray"
                 highContrast
-                disabled={prev === null}
-                asChild
+                disabled={prev == null}
+                variant={prev == null ? "solid" : "surface"}
               >
                 <Link
                   to="."
@@ -161,15 +219,22 @@ export const UsersTable = ({ usersList, prev, next, pages }: UserList) => {
                     page: prev.page != null ? prev.page - 1 : prev.page,
                   })}
                 >
-                  Previous
+                  {/*
+                   * We can't use `Button`'s loading prop when it wraps a `Link` with `asChild`.
+                   * Its space-saving HTML structure ends up causing the spinner to place relative to the parent (Table in this case).
+                   */}
+                  <Spinner loading={isPlaceholderData && prev != null}>
+                    Previous
+                  </Spinner>
                 </Link>
               </Button>
+
               <Button
-                variant="surface"
-                color="gray"
-                highContrast
-                disabled={next === null}
                 asChild
+                highContrast
+                color="gray"
+                disabled={next == null}
+                variant={next == null ? "solid" : "surface"}
               >
                 <Link
                   to="."
@@ -178,7 +243,13 @@ export const UsersTable = ({ usersList, prev, next, pages }: UserList) => {
                     page: prev.page != null ? prev.page + 1 : prev.page,
                   })}
                 >
-                  Next
+                  {/*
+                   * We can't use `Button`'s loading prop when it wraps a `Link` with `asChild`.
+                   * Its space-saving HTML structure ends up causing the spinner to place relative to the parent (Table in this case).
+                   */}
+                  <Spinner loading={isPlaceholderData && next != null}>
+                    Next
+                  </Spinner>
                 </Link>
               </Button>
             </Flex>
