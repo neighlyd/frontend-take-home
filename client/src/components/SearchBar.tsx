@@ -9,10 +9,12 @@ export const SearchBar = ({
   disabled,
   type,
   onChange,
+  isPlaceholderData,
 }: {
   disabled?: boolean;
   type: "role" | "user";
   onChange?: DebouncedState<(e: React.ChangeEvent<HTMLInputElement>) => void>;
+  isPlaceholderData?: boolean;
 }) => {
   const placeholder = useMemo(
     () => `Search by ${type === "user" ? "name" : "role"}`,
@@ -32,7 +34,7 @@ export const SearchBar = ({
           </TextField.Slot>
         </TextField.Root>
       </Box>
-      <Button disabled={disabled}>
+      <Button disabled={disabled} loading={isPlaceholderData}>
         <PlusIcon /> Add {type}
       </Button>
     </Flex>

@@ -56,6 +56,7 @@ function RouteComponent() {
         type="role"
         onChange={handleInputChange}
         disabled={rolesRes.isLoading}
+        isPlaceholderData={rolesRes.isPlaceholderData}
       />
       {data ? (
         <Table dataList={data.rolesList} type="roles" {...data} {...rolesRes} />
