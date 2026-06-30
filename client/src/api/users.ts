@@ -1,3 +1,4 @@
+import React from "react";
 import {
   keepPreviousData,
   queryOptions,
@@ -5,11 +6,12 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import axios from "redaxios";
+
+import { dateFormat, getRoute } from "./_utils";
+import { axios } from "./axios";
+import { formatRoleMap, rolesQueryOptions } from "./roles";
 
 import type { User, UsersResponse } from "../../../shared/types";
-import { dateFormat, getRoute } from "./_utils";
-import { formatRoleMap, rolesQueryOptions } from "./roles";
 
 export class UserNotFoundError extends Error {}
 
@@ -31,7 +33,7 @@ export const fetchUser = async (userId: string) => {
 
 export const fetchUsers = async (page?: number, search?: string) => {
   return axios
-    .get<UsersResponse>(getRoute(`/users`), {
+    .get<UsersResponse>("/users", {
       params: {
         page,
         search,
@@ -99,14 +101,15 @@ export const useUserList = ({
   };
 };
 
-export const useDeleteUser = () => {
+export const useDeleteUser = (onSuccessCallback?: (arg: boolean) => void) => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: (userId: string) => axios.delete(getRoute(`/users/${userId}`)),
+    mutationFn: (userId: string) => axios.delete(`/users/${userId}`),
     onSuccess: async () => {
       // If you're invalidating a single query
       await queryClient.invalidateQueries({ queryKey: ["users"] });
+      onSuccessCallback?.(true);
     },
   });
 

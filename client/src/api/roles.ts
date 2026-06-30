@@ -1,19 +1,22 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import axios from "redaxios";
+import { queryOptions } from "@tanstack/react-query";
+import { axios } from "./axios";
 
-import type { RolesResponse } from "../../../shared/types";
-import { getRoute } from "./_utils";
+import type { Role, RolesResponse } from "../../../shared/types";
 
 export const fetchRoles = async () => {
-  return axios.get<RolesResponse>(getRoute("/roles")).then((r) => r.data);
+  return axios.get<RolesResponse>("/roles").then((r) => r.data);
 };
 
 export const formatRoleMap = ({ data }: RolesResponse) => {
-  return data.reduce((acc, role) => acc.set(role.id, role), new Map());
+  return data.reduce<Map<string, Role>>(
+    (acc, role) => acc.set(role.id, role),
+    new Map(),
+  );
 };
 
 export const rolesQueryOptions = queryOptions({
   queryKey: ["roles"],
   queryFn: fetchRoles,
+  select: formatRoleMap,
   retry: 3,
 });

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import axios from "redaxios";
 import {
   AlertDialog,
   Avatar,
@@ -14,26 +13,14 @@ import {
 } from "@radix-ui/themes";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Link } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { getRoute } from "../api/_utils";
-
-import type { UserList } from "../api/users";
+import { useDeleteUser, type UserList } from "../api/users";
 
 import "./usersTable.css";
 
 const DeleteUser = ({ userName, id }: { userName: string; id: string }) => {
   const [open, setIsOpen] = useState(false);
-  const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationFn: (userId: string) => axios.delete(getRoute(`/users/${userId}`)),
-    onSuccess: async () => {
-      // If you're invalidating a single query
-      await queryClient.invalidateQueries({ queryKey: ["users"] });
-      setIsOpen(false);
-    },
-  });
+  const deleteMutation = useDeleteUser(setIsOpen);
 
   return (
     <AlertDialog.Root open={open} onOpenChange={setIsOpen}>
@@ -44,9 +31,9 @@ const DeleteUser = ({ userName, id }: { userName: string; id: string }) => {
         </DropdownMenu.Item>
       </AlertDialog.Trigger>
 
-      {/* We do not want the dialog to close during our deletion */}
       <AlertDialog.Content
         maxWidth="488px"
+        // We do not want the dialog to close during our deletion
         onEscapeKeyDown={(e) => deleteMutation.isPending && e.preventDefault()}
       >
         <AlertDialog.Title>Delete user</AlertDialog.Title>
