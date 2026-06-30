@@ -1,5 +1,5 @@
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { DropdownMenu, IconButton } from "@radix-ui/themes";
+import { DropdownMenu, IconButton, Tooltip } from "@radix-ui/themes";
 
 import { DeleteDialog, DeleteDialogProps } from "./DeleteDialog";
 
@@ -7,7 +7,10 @@ export const TableMenu = ({
   name,
   id,
   type,
-}: Pick<DeleteDialogProps, "name" | "id" | "type">) => {
+  isDefault,
+}: Pick<DeleteDialogProps, "name" | "id" | "type"> & {
+  isDefault?: boolean;
+}) => {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
@@ -23,7 +26,15 @@ export const TableMenu = ({
 
       <DropdownMenu.Content align="end">
         <DropdownMenu.Item>Edit user</DropdownMenu.Item>
-        <DeleteDialog name={name} id={id} type={type} />
+        {isDefault ? (
+          <Tooltip content={`Default ${type}s cannot be deleted`}>
+            <DropdownMenu.Item disabled={isDefault}>
+              Delete {type}
+            </DropdownMenu.Item>
+          </Tooltip>
+        ) : (
+          <DeleteDialog name={name} id={id} type={type} />
+        )}
       </DropdownMenu.Content>
     </DropdownMenu.Root>
   );

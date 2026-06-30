@@ -26,11 +26,9 @@ export const SkeletonRows = ({
           <Skeleton width="100%" />
         </Flex>
       </Table.RowHeaderCell>
-      {type === "users" ? (
-        <Table.Cell>
-          <Skeleton width="100%" />
-        </Table.Cell>
-      ) : null}
+      <Table.Cell>
+        <Skeleton width="100%" />
+      </Table.Cell>
       <Table.Cell>
         <Flex>
           <Skeleton width="100%" />

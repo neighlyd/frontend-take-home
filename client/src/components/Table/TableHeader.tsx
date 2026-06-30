@@ -21,6 +21,7 @@ export const RolesHeader = () => {
       {/* Percentages based on Figma designs */}
       <Table.ColumnHeaderCell width="65%">Role</Table.ColumnHeaderCell>
       <Table.ColumnHeaderCell width="25%">Created</Table.ColumnHeaderCell>
+      <Table.ColumnHeaderCell>Default</Table.ColumnHeaderCell>
       <Table.ColumnHeaderCell
         justify="end"
         aria-label="actions"

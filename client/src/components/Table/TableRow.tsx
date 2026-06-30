@@ -5,6 +5,7 @@ import { TableMenu } from "./TableMenu";
 import { Role, User } from "../../../../shared/types";
 
 import { TableRowProps } from "./_types";
+import { CheckIcon } from "@radix-ui/react-icons";
 
 export const UserRow = ({
   name,
@@ -35,7 +36,7 @@ export const UserRow = ({
   );
 };
 
-export const RoleRow = ({ name, id, createdAt }: Role) => {
+export const RoleRow = ({ name, id, createdAt, isDefault }: Role) => {
   return (
     <Table.Row align="center">
       <Table.RowHeaderCell>
@@ -44,8 +45,9 @@ export const RoleRow = ({ name, id, createdAt }: Role) => {
       <Table.Cell>
         <Text>{createdAt}</Text>
       </Table.Cell>
+      <Table.Cell>{isDefault ? <CheckIcon /> : null}</Table.Cell>
       <Table.Cell justify="start">
-        <TableMenu name={name} id={id} type="role" />
+        <TableMenu name={name} id={id} type="role" isDefault={isDefault} />
       </Table.Cell>
     </Table.Row>
   );
