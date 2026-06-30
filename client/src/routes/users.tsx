@@ -9,11 +9,6 @@ import { useEffect } from "react";
 import { useDebounceCallback } from "usehooks-ts";
 import z from "zod";
 
-type UserListSearch = {
-  page: number;
-  search: string;
-};
-
 const usersSearchParams = z.object({
   page: z.number().default(1),
   search: z.string().default(""),
