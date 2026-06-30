@@ -1,6 +1,6 @@
 export interface PagedResponse<T> {
   data: T[];
-  next: number | null;
-  prev: number | null;
-  pages: number;
+  next: number | null | undefined;
+  prev: number | null | undefined;
+  pages: number | undefined;
 }

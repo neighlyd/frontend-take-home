@@ -1,13 +1,13 @@
+import { useEffect } from "react";
+import z from "zod";
+import { useDebounceCallback } from "usehooks-ts";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { UsersListError, usersQueryOptions, useUserList } from "../api/users";
-import { rolesQueryOptions } from "../api/roles";
+import { rolesMapQueryOptions } from "../api/roles";
 import { SearchBar } from "../components/SearchBar";
-import { UsersTable } from "../components/UsersTable/UsersTable";
+import { Table } from "../components/Table/Table";
 import { ErrorComponent } from "../components/ErrorComponent";
-import { useEffect } from "react";
-import { useDebounceCallback } from "usehooks-ts";
-import z from "zod";
 
 const usersSearchParams = z.object({
   page: z.number().default(1),
@@ -26,16 +26,17 @@ export const Route = createFileRoute("/users")({
     // prefetch our data
     Promise.all([
       queryClient.ensureQueryData(usersQueryOptions(page, search)),
-      queryClient.ensureQueryData(rolesQueryOptions),
+      queryClient.ensureQueryData(rolesMapQueryOptions),
     ]);
   },
   pendingComponent: () => {
     return (
       <>
         <SearchBar disabled type="user" />
-        <UsersTable
+        <Table
           isLoading
-          usersList={[]}
+          type="users"
+          dataList={[]}
           isError={false}
           isPlaceholderData={false}
           next={null}
@@ -50,7 +51,7 @@ export const Route = createFileRoute("/users")({
 
 function RouteComponent() {
   const { page, search } = Route.useSearch();
-  const usersRes = useUserList({ page, search });
+  const { usersList, ...usersRes } = useUserList({ page, search });
   const navigate = Route.useNavigate();
 
   const handleInputChange = useDebounceCallback(
@@ -89,7 +90,9 @@ function RouteComponent() {
         onChange={handleInputChange}
         disabled={usersRes.isLoading}
       />
-      {usersRes ? <UsersTable {...usersRes} /> : null}
+      {usersList ? (
+        <Table dataList={usersList} type="users" {...usersRes} />
+      ) : null}
     </>
   );
 }

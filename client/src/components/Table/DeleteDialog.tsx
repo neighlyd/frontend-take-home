@@ -1,39 +1,40 @@
 import { useState } from "react";
 import { AlertDialog, Button, DropdownMenu, Flex } from "@radix-ui/themes";
 
-import { useDeleteUser } from "../../api/users";
+import { useDelete } from "../../api/shared";
 
-import "./usersTable.css";
-
-export const DeleteUserDialog = ({
-  userName,
-  id,
-}: {
-  userName: string;
+export interface DeleteDialogProps {
+  name: string;
   id: string;
-}) => {
+  type: "role" | "user";
+}
+
+export const DeleteDialog = ({ name, id, type }: DeleteDialogProps) => {
   const [open, setIsOpen] = useState(false);
-  const deleteMutation = useDeleteUser(setIsOpen);
+  const { mutate, isPending, isError } = useDelete({
+    type,
+    onSuccess: setIsOpen,
+  });
 
   return (
     <AlertDialog.Root open={open} onOpenChange={setIsOpen}>
       <AlertDialog.Trigger>
         {/* We need to stop the Dropdown menu from closing when selecting this option*/}
         <DropdownMenu.Item onSelect={(e) => e.preventDefault()}>
-          Delete user
+          Delete {type}
         </DropdownMenu.Item>
       </AlertDialog.Trigger>
 
       <AlertDialog.Content
         maxWidth="488px"
         // We do not want the dialog to close during our deletion
-        onEscapeKeyDown={(e) => deleteMutation.isPending && e.preventDefault()}
+        onEscapeKeyDown={(e) => isPending && e.preventDefault()}
       >
-        <AlertDialog.Title>Delete user</AlertDialog.Title>
+        <AlertDialog.Title>Delete {type}</AlertDialog.Title>
         <AlertDialog.Description size="2">
-          {!deleteMutation.isError
-            ? `Are you sure? The user ${userName} will be permanently deleted.`
-            : `There was an error trying to delete ${userName}. Please try again`}
+          {!isError
+            ? `Are you sure? The ${type} ${name} will be permanently deleted.`
+            : `There was an error trying to delete ${name}. Please try again`}
         </AlertDialog.Description>
 
         <Flex gap="3" mt="4" justify="end">
@@ -46,14 +47,14 @@ export const DeleteUserDialog = ({
             <Button
               variant="solid"
               color="red"
-              loading={deleteMutation.isPending}
+              loading={isPending}
               onClick={(e) => {
                 // Stop the dialog from closing.
                 e.preventDefault();
-                deleteMutation.mutate(id);
+                mutate(id);
               }}
             >
-              Delete user
+              Delete {type}
             </Button>
           </AlertDialog.Action>
         </Flex>

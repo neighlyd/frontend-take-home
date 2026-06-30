@@ -7,9 +7,9 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { dateFormat, getRoute } from "./_utils";
+import { dateFormat } from "./_utils";
 import { axios } from "./axios";
-import { formatRoleMap, rolesQueryOptions } from "./roles";
+import { formatRoleMap, rolesMapQueryOptions } from "./roles";
 
 import type { User, UsersResponse } from "../../../shared/types";
 
@@ -19,7 +19,7 @@ export class UsersListError extends Error {}
 
 export const fetchUser = async (userId: string) => {
   const user = await axios
-    .get<User>(getRoute(`/users/${userId}`))
+    .get<User>(`/users/${userId}`)
     .then((r) => r.data)
     .catch((err) => {
       if (err.status === 404) {
@@ -31,7 +31,7 @@ export const fetchUser = async (userId: string) => {
   return user;
 };
 
-export const fetchUsers = async (page?: number, search?: string) => {
+export const fetchUsers = async (page: number = 1, search: string = "") => {
   return axios
     .get<UsersResponse>("/users", {
       params: {
@@ -42,7 +42,7 @@ export const fetchUsers = async (page?: number, search?: string) => {
     .then((r) => r.data);
 };
 
-export const usersQueryOptions = (page: number = 1, search?: string) =>
+export const usersQueryOptions = (page?: number, search?: string) =>
   queryOptions({
     queryKey: ["users", page, search],
     queryFn: () => fetchUsers(page, search),
@@ -54,14 +54,14 @@ export const formatUsersList = (
   { data }: UsersResponse,
   roleMap: ReturnType<typeof formatRoleMap>,
 ) => {
-  return data.map((user) => {
+  return data.map(({ first, last, roleId, createdAt, updatedAt, ...user }) => {
     return {
-      id: user.id,
-      name: `${user.first} ${user.last}`,
-      role: roleMap.get(user.roleId)?.name,
-      joined: dateFormat.format(new Date(user.createdAt)),
-      photo: user.photo,
-      photoFallback: user.first.slice(0, -1),
+      name: `${first} ${last}`,
+      role: roleMap.get(roleId)?.name,
+      joined: dateFormat.format(new Date(createdAt)),
+      updatedAt: dateFormat.format(new Date(updatedAt)),
+      photoFallback: first.slice(0, -1),
+      ...user,
     };
   });
 };
@@ -74,7 +74,7 @@ export const useUserList = ({
   search?: string;
 }) => {
   const usersRes = useQuery(usersQueryOptions(page, search));
-  const rolesRes = useQuery(rolesQueryOptions);
+  const rolesRes = useQuery(rolesMapQueryOptions);
 
   const isLoading = usersRes.isLoading || rolesRes.isLoading;
   const isError = usersRes.isError || rolesRes.isError;
