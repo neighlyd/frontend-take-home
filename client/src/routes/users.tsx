@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { usersQueryOptions, useUserList } from "../api/users";
+import { UsersListError, usersQueryOptions, useUserList } from "../api/users";
 import { rolesQueryOptions } from "../api/roles";
 import { SearchBar } from "../components/SearchBar";
-import { UsersTable } from "../components/UsersTable";
+import { UsersTable } from "../components/UsersTable/UsersTable";
 import { ErrorComponent } from "../components/ErrorComponent";
 import { useEffect } from "react";
 import { useDebounceCallback } from "usehooks-ts";
@@ -82,6 +82,10 @@ function RouteComponent() {
       });
     }
   }, [page, usersRes.pages]);
+
+  if (usersRes.isError) {
+    throw new UsersListError();
+  }
 
   return (
     <>

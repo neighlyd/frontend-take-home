@@ -14,60 +14,11 @@ import {
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Link } from "@tanstack/react-router";
 
-import { useDeleteUser, type UserList } from "../api/users";
+import { DeleteUserDialog } from "./DeleteUserDialog";
+
+import type { UserList } from "../../api/users";
 
 import "./usersTable.css";
-
-const DeleteUser = ({ userName, id }: { userName: string; id: string }) => {
-  const [open, setIsOpen] = useState(false);
-  const deleteMutation = useDeleteUser(setIsOpen);
-
-  return (
-    <AlertDialog.Root open={open} onOpenChange={setIsOpen}>
-      <AlertDialog.Trigger>
-        {/* We need to stop the Dropdown menu from closing when selecting this option*/}
-        <DropdownMenu.Item onSelect={(e) => e.preventDefault()}>
-          Delete user
-        </DropdownMenu.Item>
-      </AlertDialog.Trigger>
-
-      <AlertDialog.Content
-        maxWidth="488px"
-        // We do not want the dialog to close during our deletion
-        onEscapeKeyDown={(e) => deleteMutation.isPending && e.preventDefault()}
-      >
-        <AlertDialog.Title>Delete user</AlertDialog.Title>
-        <AlertDialog.Description size="2">
-          {!deleteMutation.isError
-            ? `Are you sure? The user ${userName} will be permanently deleted.`
-            : `There was an error trying to delete ${userName}. Please try again`}
-        </AlertDialog.Description>
-
-        <Flex gap="3" mt="4" justify="end">
-          <AlertDialog.Cancel>
-            <Button variant="soft" color="gray">
-              Cancel
-            </Button>
-          </AlertDialog.Cancel>
-          <AlertDialog.Action>
-            <Button
-              variant="solid"
-              color="red"
-              loading={deleteMutation.isPending}
-              onClick={(e) => {
-                // Stop the dialog from closing.
-                e.preventDefault();
-                deleteMutation.mutate(id);
-              }}
-            >
-              Delete user
-            </Button>
-          </AlertDialog.Action>
-        </Flex>
-      </AlertDialog.Content>
-    </AlertDialog.Root>
-  );
-};
 
 const UsersTableRow = ({
   name,
@@ -78,9 +29,9 @@ const UsersTableRow = ({
   photoFallback,
 }: NonNullable<UserList["usersList"]>[number]) => {
   return (
-    <Table.Row>
+    <Table.Row align="center">
       <Table.RowHeaderCell>
-        <Flex gap="2">
+        <Flex gap="2" align="center">
           <Avatar src={photo} fallback={photoFallback} radius="full" size="1" />
           <Text>{name}</Text>
         </Flex>
@@ -106,7 +57,7 @@ const UsersTableRow = ({
 
           <DropdownMenu.Content align="end">
             <DropdownMenu.Item>Edit user</DropdownMenu.Item>
-            <DeleteUser userName={name} id={id} />
+            <DeleteUserDialog userName={name} id={id} />
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       </Table.Cell>
@@ -116,7 +67,7 @@ const UsersTableRow = ({
 
 const SkeletonRow = () => {
   return (
-    <Table.Row>
+    <Table.Row align="center">
       <Table.RowHeaderCell>
         <Flex gap="2" align="center">
           <Skeleton>
@@ -126,12 +77,10 @@ const SkeletonRow = () => {
         </Flex>
       </Table.RowHeaderCell>
       <Table.Cell>
-        <Flex align="center">
-          <Skeleton width="100%" />
-        </Flex>
+        <Skeleton width="100%" />
       </Table.Cell>
       <Table.Cell>
-        <Flex align="center">
+        <Flex>
           <Skeleton width="100%" />
         </Flex>
       </Table.Cell>
@@ -142,11 +91,9 @@ const SkeletonRow = () => {
 
 /**
  * We can adjust this as necessary.
- * It looks good on page 1, not page 2.
- *
  * We would ideally want to set this to the average number of our pages maybe?
  */
-const skeletonArr = Array.from({ length: 1 }, (_, i) => i);
+const skeletonArr = Array.from({ length: 3 }, (_, i) => i);
 
 export const UsersTable = ({
   usersList,
@@ -157,14 +104,6 @@ export const UsersTable = ({
   isError,
   isPlaceholderData,
 }: UserList) => {
-  console.log(
-    "isLoading:",
-    isLoading,
-    "isPlacholderData:",
-    isPlaceholderData,
-    "prev != null:",
-    prev != null,
-  );
   return (
     <Table.Root variant="surface" className="hasFooter">
       <Table.Header>
