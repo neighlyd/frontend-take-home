@@ -13,6 +13,7 @@ export const DeleteDialog = ({ name, id, type }: DeleteDialogProps) => {
   const [open, setIsOpen] = useState(false);
   const { mutate, isPending, isError } = useDelete({
     type,
+    id,
     onSuccess: setIsOpen,
   });
 
@@ -51,7 +52,7 @@ export const DeleteDialog = ({ name, id, type }: DeleteDialogProps) => {
               onClick={(e) => {
                 // Stop the dialog from closing.
                 e.preventDefault();
-                mutate(id);
+                mutate();
               }}
             >
               Delete {type}

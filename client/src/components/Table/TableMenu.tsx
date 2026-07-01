@@ -2,6 +2,7 @@ import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { DropdownMenu, IconButton, Tooltip } from "@radix-ui/themes";
 
 import { DeleteDialog, DeleteDialogProps } from "./DeleteDialog";
+import { EditDialog } from "./EditDialog";
 
 export const TableMenu = ({
   name,
@@ -25,7 +26,8 @@ export const TableMenu = ({
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Content align="end">
-        <DropdownMenu.Item>Edit user</DropdownMenu.Item>
+        {/* <DropdownMenu.Item>Edit user</DropdownMenu.Item> */}
+        <EditDialog name={name} id={id} type={type} />
         {isDefault ? (
           <Tooltip content={`Default ${type}s cannot be deleted`}>
             <DropdownMenu.Item disabled={isDefault}>
