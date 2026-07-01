@@ -26,8 +26,13 @@ export const TableMenu = ({
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Content align="end">
-        {/* <DropdownMenu.Item>Edit user</DropdownMenu.Item> */}
-        <EditDialog name={name} id={id} type={type} />
+        {type === "role" ? (
+          <EditDialog name={name} id={id} type={type} />
+        ) : (
+          <Tooltip content="Not yet implemented">
+            <DropdownMenu.Item disabled>Edit user</DropdownMenu.Item>
+          </Tooltip>
+        )}
         {isDefault ? (
           <Tooltip content={`Default ${type}s cannot be deleted`}>
             <DropdownMenu.Item disabled={isDefault}>
